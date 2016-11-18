@@ -1,5 +1,4 @@
 *.DS_Store
 Gemfile.lock
-notifu.GITHUB.sublime-*
 config/*.yaml
 config/*/*.yaml

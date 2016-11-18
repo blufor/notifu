@@ -1,0 +1,5 @@
+require "notifu/model/contact"
+require "notifu/model/sla"
+require "notifu/model/group"
+require "notifu/model/event"
+require "notifu/model/issue"
