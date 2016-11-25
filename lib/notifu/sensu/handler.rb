@@ -51,7 +51,7 @@ module Sensu::Extension
     end
 
     def run(event_data)
-      event = MultiJson.load(event_data, { :symbolize_keys => true })
+      event = JSON.load(event_data, { :symbolize_keys => true })
       notifu_id = Digest::SHA256.hexdigest("#{event[:client][:name]}:#{event[:client][:address]}:#{event[:check][:name]}").to_s[-10,10]
 
       if event[:check][:name] == "keepalive"

@@ -28,9 +28,9 @@ module Notifu
         when 1
           ":sad_obama:"
         when 2
-          ":surprised_obama"
+          ":surprised_obama:"
         else
-          ":obama_mic_drop"
+          ":obama_mic_drop:"
         end
       end
 
@@ -56,7 +56,7 @@ module Notifu
             headers: { "ContentType" => "application/json" },
             body: self.post_data,
             expects: [ 200 ],
-            idempotent: true,
+            idempotent: true
           )
         end
       end
