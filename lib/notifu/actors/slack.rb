@@ -31,16 +31,6 @@ module Notifu
                   short: true
                 },
                 {
-                  title: "started",
-                  value: Time.at(self.issue.time_created.to_i),
-                  short: true
-                },
-                {
-                  title: "occurrences/trigger",
-                  value: "#{self.issue.occurrences_count}/#{self.issue.occurrences_trigger}",
-                  short: true
-                },
-                {
                   title: "notifu ID",
                   value: self.issue.notifu_id,
                   short: true
@@ -52,7 +42,7 @@ module Notifu
       end
 
       def color
-        case self.issue.code
+        case self.issue.code.to_i
         when 0
           "good"
         when 1
