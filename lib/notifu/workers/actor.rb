@@ -55,6 +55,6 @@ module Notifu
 end
 
 # load all actors
-Dir[File.dirname(__FILE__).sub(/\/lib\/workers$/, "/") + 'actors/*.rb'].each do |file|
+Dir[File.dirname(__FILE__).sub(/\/workers$/, "/") + 'actors/*.rb'].each do |file|
   require file
 end

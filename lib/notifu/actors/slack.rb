@@ -10,27 +10,57 @@ module Notifu
       self.retry = 3
 
       def template
-          "<%= data[:status] %> [<%= data[:host] %>/<%= data[:service] %>]: <%= data[:message] %> (<%= data[:duration] %>) NID:<%= data[:notifu_id] %>]"
+        "<%= data[:status] %> [<%= data[:host] %>/<%= data[:service] %>]: <%= data[:message] %> (<%= data[:duration] %>) NID:<%= data[:notifu_id] %>]"
       end
 
       def post_data
         {
-          text: self.text,
           username: "notifu",
-          icon_emoji: self.emoji
+          icon_emoji: ":loudspeaker:",
+          attachments: [
+            {
+              fallback: self.text,
+              color: self.color,
+              title: "#{self.issue.host} - #{self.issue.service}",
+              title_link: "https://sensu.skypicker.com/#/client/#{Notifu::CONFIG[:actors][:slack][:dc]}/#{self.issue.host}?check=#{self.issue.service}",
+              text: self.issue.message,
+              fields: [
+                {
+                  title: "duration",
+                  value: (Time.now.to_i - self.issue.time_created.to_i).duration,
+                  short: true
+                },
+                {
+                  title: "started",
+                  value: Time.at(self.issue.time_created.to_i),
+                  short: true
+                },
+                {
+                  title: "occurrences/trigger",
+                  value: "#{self.issue.occurrences_count}/#{self.issue.occurrences_trigger}",
+                  short: true
+                },
+                {
+                  title: "notifu ID",
+                  value: self.issue.notifu_id,
+                  short: true
+                }
+              ]
+            }
+          ]
         }.to_json
       end
 
-      def emoji
+      def color
         case self.issue.code
         when 0
-          ":happy_obama:"
+          "good"
         when 1
-          ":sad_obama:"
+          "warning"
         when 2
-          ":surprised_obama:"
+          "danger"
         else
-          ":obama_mic_drop:"
+          "#999999"
         end
       end
 
