@@ -7,6 +7,8 @@ module Notifu
       attribute :cell
       attribute :mail
       attribute :jabber
+      attribute :slack_url
+      attribute :pagerduty_url
       index :name
       unique :name
 

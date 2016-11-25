@@ -1,6 +1,6 @@
 require 'sensu/redis'
 require 'digest'
-require 'multi_json'
+require 'json'
 
 module Sensu::Extension
   class Notifu < Handler
@@ -88,7 +88,7 @@ module Sensu::Extension
       }
 
       begin
-        @redis.lpush("queue:processor", MultiJson.dump(job))
+        @redis.lpush("queue:processor", JSON.dump(job))
       rescue Exception => e
         yield "failed to send event to Notifu #{e.message}", 1
       end
@@ -102,4 +102,3 @@ module Sensu::Extension
 
   end
 end
-

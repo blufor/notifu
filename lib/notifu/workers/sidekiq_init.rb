@@ -1,8 +1,6 @@
 ##
 # Require block
 #
-require 'rubygems'
-require 'bundler/setup'
 require "ohm"
 require "elasticsearch"
 require "log4r/outputter/syslogoutputter"
