@@ -281,12 +281,11 @@ module Notifu
         path = "silence/#{self.event.host}/#{self.event.service}"
       end
 
-      silenced = false
       get_stashes.each do |stash|
-        silenced = true if stash["path"] == path
+        return true if stash["path"] == path
       end
 
-      return silenced
+      false
     end
 
     def is_ok?
@@ -361,7 +360,7 @@ module Notifu
     def get_stashes
       return @stashes if @stashes
       begin
-        sensu_api = Excon.get "#{self.event.api_endpoint}/stashes"
+        sensu_api = Excon.get("#{self.event.api_endpoint}/stashes", user: Notifu::CONFIG[:sensu_api][:username], password: Notifu::CONFIG[:sensu_api][:password])
         @stashes = JSON.parse sensu_api.body
       rescue
         @stashes = []
@@ -380,7 +379,7 @@ module Notifu
           if stash["expire"] < 0
             if self.event.unsilence
               begin
-                Excon.delete "#{self.event.api_endpoint}/stashes/silence/#{self.event.host}/#{self.event.service}"
+                Excon.delete("#{self.event.api_endpoint}/stashes/silence/#{self.event.host}/#{self.event.service}", user: Notifu::CONFIG[:sensu_api][:username], password: Notifu::CONFIG[:sensu_api][:password])
                 log "info", "Unstashed #{self.event.host}/#{self.event.service} after recovery"
               rescue
                 log "warning", "Failed to fetch stashes from Sensu API: #{self.event.api_endpoint}/stashes"

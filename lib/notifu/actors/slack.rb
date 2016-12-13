@@ -9,12 +9,8 @@ module Notifu
       self.desc = "Notifies to Slack channel via Webhook"
       self.retry = 3
 
-      def template
-        "<%= data[:status] %> [<%= data[:host] %>/<%= data[:service] %>]: <%= data[:message] %> (<%= data[:duration] %>) NID:<%= data[:notifu_id] %>]"
-      end
-
-      def post_data
-        {
+      def post_data(rich)
+        return {
           username: "notifu",
           icon_emoji: ":loudspeaker:",
           attachments: [
@@ -22,7 +18,7 @@ module Notifu
               fallback: self.text,
               color: self.color,
               title: "#{self.issue.host} - #{self.issue.service}",
-              title_link: "https://sensu.skypicker.com/#/client/#{Notifu::CONFIG[:actors][:slack][:dc]}/#{self.issue.host}?check=#{self.issue.service}",
+              title_link: "#{Notifu::CONFIG[:uchiwa_url]}/#/client/#{Notifu::CONFIG[:dc]}/#{self.issue.host}?check=#{self.issue.service}",
               text: self.issue.message,
               fields: [
                 {
@@ -38,6 +34,11 @@ module Notifu
               ]
             }
           ]
+        }.to_json if rich
+        {
+          username: "notifu",
+          icon_emoji: ":loudspeaker:",
+          text: self.text
         }.to_json
       end
 
@@ -54,6 +55,7 @@ module Notifu
         end
       end
 
+      # fallback simple message (templated, see below)
       def text
         data = OpenStruct.new({
           notifu_id: self.issue.notifu_id,
@@ -69,12 +71,22 @@ module Notifu
         ERB.new(self.template).result(data.instance_eval {binding})
       end
 
+      # template for fallback message
+      def template
+        "**<%= data[:status] %>** [<%= data[:host] %>/<%= data[:service] %>]: <%= data[:message] %> (<%= data[:duration] %>)"
+      end
+
       def act
         self.contacts.each do |contact|
+          begin
+            data = { channel: contact.slack_id }.merge(self.post_data(contact.slack_rich))
+          rescue
+            data = self.post_data
+          end
           Excon.post(contact.slack_url,
             tcp_nodelay: true,
             headers: { "ContentType" => "application/json" },
-            body: self.post_data,
+            body: data,
             expects: [ 200 ],
             idempotent: true
           )

@@ -8,6 +8,11 @@ redis_data: "redis://localhost:6379/1"
 # way: redis://<host>:<port>/<db_num>
 redis_queues: "redis://localhost:6379/2"
 
+# Sensu API auth
+sensu_api:
+  username: sensu
+  password: somepass
+
 # Actor configuration
 actors:
 

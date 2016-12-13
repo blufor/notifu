@@ -3,6 +3,7 @@ module Notifu
     class Event
       include Notifu::Util
       attr_reader :notifu_id
+      attr_reader :datacenter
       attr_reader :host
       attr_reader :address
       attr_reader :service

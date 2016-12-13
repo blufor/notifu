@@ -3,7 +3,7 @@ module Notifu
 
     attr_reader :config
 
-    @@config_path = "/etc/notifu/"
+    @@config_path = "/etc/notifu/" # FIXME: should be parametrized
 
     def initialize
       begin

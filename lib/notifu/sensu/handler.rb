@@ -64,6 +64,7 @@ module Sensu::Extension
 
       payload = {
         notifu_id: notifu_id,
+        datacenter: event[:client][:datacenter] || 'default',
         host: event[:client][:name],
         address: event[:client][:address],
         service: event[:check][:name],

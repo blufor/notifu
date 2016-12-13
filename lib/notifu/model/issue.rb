@@ -3,6 +3,7 @@ module Notifu
     class Issue < Ohm::Model
       include Notifu::Util
       attribute :notifu_id
+      attribute :datacenter
       attribute :host
       attribute :address
       attribute :service
