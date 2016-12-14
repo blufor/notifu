@@ -282,9 +282,12 @@ module Notifu
       end
 
       get_stashes.each do |stash|
-        return true if stash["path"] == path
+        begin
+          return true if stash["path"] == path
+        rescue NoMethodError
+          return false
+        end
       end
-
       false
     end
 
