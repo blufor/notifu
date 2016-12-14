@@ -85,7 +85,7 @@ module Notifu
           rescue
             data = self.post_data
           end
-          Excon.post(contact.slack_url,
+          Excon.post(Notifu::CONFIG[:actors][:slack][:url],
             tcp_nodelay: true,
             headers: { "ContentType" => "application/json" },
             body: data,
