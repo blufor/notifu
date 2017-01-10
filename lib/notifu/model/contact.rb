@@ -8,7 +8,7 @@ module Notifu
       attribute :mail
       attribute :slack_id
       attribute :slack_rich
-      attribute :pagerduty_url
+      attribute :pagerduty_id
       index :name
       unique :name
 

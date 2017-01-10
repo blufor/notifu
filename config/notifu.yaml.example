@@ -15,43 +15,28 @@ sensu_api:
 
 # Actor configuration
 actors:
-
   smtp:
     from: "notifu@domain.com"
     method: sendmail
     # pass: somepass
-
   gammu_sms_bridge:
     host: 10077
     port: "mother.prz"
-
   twilio_call:
-    api: "https://domain.com/some/uri/path"
+    url: "https://domain.com/some/uri/path"
     token: "YourSecureTokenForAPI"
+  slack:
+    url: http://hooks.slack.com/...
+  pagerduty:
+    url: http://pagerduty.com/...
 
 # Logging configuration
 logging:
-
-  # Minimum log level
   level: info
-
-  # Syslog logging
   syslog:
-
-    # When disabled, all log messages up to LOG_WARN level (included) are piped
-    # to STDOUT. Anything from LOG_ERR higher is piped to STDERR.
     enabled: true
-
-  # elasticsearch config
   elasticsearch:
-
-    # When disabled, all log messages are piped to STDOUT.
     enabled: true
-
-    # Array that defines ElasticSearch connection pool. The syntax is just a list
-    # of <host>:<port> array elements.
     conn:
      - "localhost:9200"
-
-    # Timeout for logging HTTP requests to ElasticSearch
     timeout: 10

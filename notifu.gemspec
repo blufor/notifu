@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name                  = 'notifu'
-  s.version               = '1.5.7'
+  s.version               = '1.6.0'
   s.date                  = Time.now.strftime('%Y-%m-%d')
   s.summary               = "Sensu notification handling service"
   s.description           = "Provides Nagios-like notification configuration & schedules"

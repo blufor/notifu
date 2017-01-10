@@ -10,4 +10,9 @@ timeranges:
   - "NEVER"
 renotification_interval: 3600
 actors:
-  - stdout
+  primary:
+    - smtp
+  secondary:
+    - slack
+  tertiary:
+    - pagerduty

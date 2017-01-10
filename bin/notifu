@@ -1,15 +1,11 @@
 #!/usr/bin/env ruby
 
-path = File.symlink?(__FILE__) ? File.readlink(__FILE__) : __FILE__
-$basepath = '/' + File.dirname(path).split('/')[1..-2].join('/') + '/lib/notifu/'
-$actorpath = $basepath + "actors/"
-# $sidekiq_bin = $basepath.sub(/app\//, '') + ".rvm/wrappers/notifu/sidekiq"
-$sidekiq_bin = "sidekiq"
-
 require 'notifu'
 
+$basepath = Gem::Specification.find_by_name('notifu').gem_dir + '/lib/notifu/'
+$actorpath = $basepath + "actors/"
+$sidekiq_bin = Gem.bin_path('sidekiq', 'sidekiq')
+
 Notifu::CONFIG = Notifu::Config.new.get
-
 Ohm.redis = Redic.new Notifu::CONFIG[:redis_data]
-
 Notifu::CLI::Root.start(ARGV)

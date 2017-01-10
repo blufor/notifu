@@ -18,6 +18,7 @@ module Notifu
       attr_reader :code
       attr_reader :aspiring_code
       attr_reader :message
+      attr_reader :playbook
       attr_reader :api_endpoint
       attr_reader :duration
       attr_reader :unsilence

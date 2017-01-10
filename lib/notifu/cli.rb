@@ -1,3 +1,6 @@
+require "notifu/cli/service"
+require "notifu/cli/object"
+
 module Notifu
   module CLI
     class Root < Thor

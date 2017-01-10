@@ -1,5 +1,7 @@
 ---
-name: somename
+name: john
 full_name: 'John Doe'
 cell: '+1234567890'
 mail: 'john.doe@domain.com'
+slack_id: '@john'
+pagerduty_id: 'john'

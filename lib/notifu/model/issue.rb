@@ -19,6 +19,7 @@ module Notifu
       attribute :code
       attribute :aspiring_code
       attribute :message
+      attribute :playbook
       attribute :process_result
       attribute :api_endpoint
       attribute :duration

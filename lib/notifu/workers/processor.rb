@@ -276,14 +276,14 @@ module Notifu
 
     def silenced?
       if self.event.service == "keepalive"
-        path = "silence/#{self.event.host}"
+        id = "silence/#{self.event.host}"
       else
-        path = "silence/#{self.event.host}/#{self.event.service}"
+        id = "silence/#{self.event.host}/#{self.event.service}"
       end
 
-      get_stashes.each do |stash|
+      get_silenced.each do |stash|
         begin
-          return true if stash["path"] == path
+          return true if stash["id"] == id
         rescue NoMethodError
           return false
         end
@@ -360,14 +360,13 @@ module Notifu
     ##
     # get stashes from Sensu API
     #
-    def get_stashes
-      return @stashes if @stashes
+    def get_silenced
       begin
-        sensu_api = Excon.get("#{self.event.api_endpoint}/stashes", user: Notifu::CONFIG[:sensu_api][:username], password: Notifu::CONFIG[:sensu_api][:password])
-        @stashes = JSON.parse sensu_api.body
-      rescue
-        @stashes = []
-        log "error", "Failed to get stashes #{self.event.api_endpoint}/stashes"
+        sensu_api = Excon.get("#{self.event.api_endpoint}/silenced", user: Notifu::CONFIG[:sensu_api][:username], password: Notifu::CONFIG[:sensu_api][:password])
+        return JSON.parse sensu_api.body
+      rescue Exception => e
+        log "error", "Failed to get stashes #{self.event.api_endpoint}/stashes (#{e.message})"
+        return []
       end
     end
 
@@ -377,7 +376,7 @@ module Notifu
     #
     def unsilence!
       path = "silence/#{self.event.host}/#{self.event.service}"
-      get_stashes.each do |stash|
+      get_silenced.each do |stash|
         if stash["path"] == path
           if stash["expire"] < 0
             if self.event.unsilence
