@@ -45,12 +45,12 @@ module Notifu
 
     def perform *args
       t_start = Time.now.to_f*1000.0
-      log "info", "Task start"
+      log "debug", "Task start"
 
       # read event
       self.event = Notifu::Model::Event.new args
       self.now = Time.now
-      log "info", "Processing event NID #{self.event.notifu_id}"
+      log "debug", "Processing event NID #{self.event.notifu_id}"
 
       # try to check if we already know about the issue, otherwise save it into DB as a new one
       self.issue = Notifu::Model::Issue.with(:notifu_id, self.event.notifu_id)
@@ -61,7 +61,7 @@ module Notifu
 
       t_finish = Time.now.to_f*1000.0
 
-      log "info", "Task finish (in #{t_finish-t_start}ms)"
+      log "debug", "Task finish (in #{t_finish-t_start}ms)"
     end
 
 ###################################################################
