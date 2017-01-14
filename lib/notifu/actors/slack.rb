@@ -78,7 +78,7 @@ module Notifu
 
       # fallback simple message (templated, see below)
       def text(tmpl)
-        @tmpl_struct ||= OpenStruct.new({
+        data = OpenStruct.new({
           notifu_id: self.issue.notifu_id,
           datacenter: self.issue.datacenter,
           host: self.issue.host,
@@ -91,7 +91,7 @@ module Notifu
           service_icon: self.service_icon,
           status_icon: self.status_icon
         })
-        ERB.new(tmpl).result(@tmpl_struct.instance_eval {binding})
+        ERB.new(tmpl).result(data.instance_eval {binding})
       end
 
       # template for fallback message
