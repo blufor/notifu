@@ -3,7 +3,6 @@ module Notifu
     class Pagerduty < Notifu::Actor
 
       require 'excon'
-      require 'erb'
 
       self.name = "pagerduty"
       self.desc = "Sends event to pagerduty"
@@ -16,11 +15,12 @@ module Notifu
           description: self.text,
           incident_key: self.issue.notifu_id,
           details: {
-            status: self.issue.code.to_state,
-            dc: self.issue.datacenter,
             host: self.issue.host,
+            address: self.issue.address,
             service: self.issue.service,
             message: self.issue.message,
+            status: self.issue.code.to_state,
+            datacenter: self.issue.datacenter,
             first_event: Time.at(self.issue.time_created.to_i),
           },
           client: "Sensu",
@@ -28,40 +28,31 @@ module Notifu
         }
       end
 
-      def text
-        data = OpenStruct.new({
-          notifu_id: self.issue.notifu_id,
-          datacenter: self.issue.datacenter,
-          host: self.issue.host,
-          service: self.issue.service,
-          message: self.issue.message,
-          status: self.issue.code.to_state
-        })
-        ERB.new(self.template).result(data.instance_eval {binding})
+      def text(c)
+        t = c.pagerduty_template
+        t ||= self.default_template
+        self.apply_template t
       end
 
-      def template
-        "<%= data[:status] %> [<%= data[:datacenter] %>/<%= data[:host] %>/<%= data[:service] %>]: <%= data[:message] %>"
-      end
 
       def act
         type = "resolve" if self.issue.code.to_i == 0
         type ||= "trigger"
 
         self.contacts.each do |contact|
-          begin
-            c = contact.pagerduty_id
-          rescue
-            c = false
-          end
+          contact.pagerduty_id || next
 
-          Excon.post(Notifu::CONFIG[:actors][:pagerduty][:url],
-            tcp_nodelay: true,
-            headers: { "ContentType" => "application/json" },
-            body: self.post_data(type, c).to_json,
-            expects: [ 200 ],
-            idempotent: true,
-          ) if c
+          begin
+            Excon.post(Notifu::CONFIG[:actors][:pagerduty][:url],
+              tcp_nodelay: true,
+              headers: { "ContentType" => "application/json" },
+              body: self.post_data(type, c).to_json,
+              expects: [ 200 ],
+              idempotent: true,
+            )
+          rescue Exception => e
+            log "error", "Failed to send event to PagerDuty - #{e.class}: #{e.message}"
+          end
         end
       end
 

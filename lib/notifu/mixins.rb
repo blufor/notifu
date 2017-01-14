@@ -13,9 +13,9 @@ class Numeric
     days  = hours / 24
 
     if days > 0
-      "#{days}d, #{hours % 24}h"
+      "#{days}d, #{hours % 24}h, #{mins % 60}min, #{secs % 60}s"
     elsif hours > 0
-      "#{hours}h, #{mins % 60}min"
+      "#{hours}h, #{mins % 60}min, #{secs % 60}s"
     elsif mins > 0
       "#{mins}min, #{secs % 60}s"
     elsif secs >= 0

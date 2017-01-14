@@ -170,7 +170,7 @@ module Notifu
           :"@timestamp" => self.now.iso8601,
         }
 
-        action_log action_log_message
+        action_log "processor", action_log_message
 
       end
 
@@ -365,7 +365,7 @@ module Notifu
         sensu_api = Excon.get("#{self.event.api_endpoint}/silenced", user: Notifu::CONFIG[:sensu_api][:username], password: Notifu::CONFIG[:sensu_api][:password])
         return JSON.parse sensu_api.body
       rescue Exception => e
-        log "error", "Failed to get stashes #{self.event.api_endpoint}/stashes (#{e.message})"
+        log "error", "Failed to get stashes - GET #{self.event.api_endpoint}/stashes (#{e.message})"
         return []
       end
     end
@@ -382,33 +382,23 @@ module Notifu
             if self.event.unsilence
               begin
                 Excon.delete("#{self.event.api_endpoint}/stashes/silence/#{self.event.host}/#{self.event.service}", user: Notifu::CONFIG[:sensu_api][:username], password: Notifu::CONFIG[:sensu_api][:password])
-                log "info", "Unstashed #{self.event.host}/#{self.event.service} after recovery"
-              rescue
-                log "warning", "Failed to fetch stashes from Sensu API: #{self.event.api_endpoint}/stashes"
+                log "info", "Unsilenced #{self.event.host}/#{self.event.service} after recovery"
+              rescue Exception => e
+                log "warning", "Failed to unsilence - DELETE #{self.event.api_endpoint}/stashes/silence/#{self.event.host}/#{self.event.service} (#{e.message})"
               end
             else
-              log "info", "#{self.event.host}/#{self.event.service} left stashed (auto-unstash disabled)"
+              log "info", "#{self.event.host}/#{self.event.service} left silenced (auto-unsilence disabled)"
             end
           else
-            log "info", "#{self.event.host}/#{self.event.service} left stashed (auto-unstash doesn't work on checks with defined expiry)"
+            log "info", "#{self.event.host}/#{self.event.service} left silenced (auto-unsilence doesn't work when TTL is defined)"
           end
         end
       end
     end
 
     ##
-    # logging method
-    #
-    def log(prio, msg)
-      $logger.log prio, "JID-#{self.jid}: " + msg.to_s
-    end
-
-    ##
     # action logging method
     #
-    def action_log event
-      $logger.action_log "processor", event
-    end
 
   end
 end
@@ -435,10 +425,6 @@ module Notifu
       rescue NoMethodError
         log "info", "Cleanup NID #{notifu_id} - not found"
       end
-    end
-
-    def log(prio, msg)
-      $logger.log prio, "JID-#{self.jid}: " + msg.to_s
     end
 
   end

@@ -3,7 +3,6 @@ module Notifu
     class TwilioCall < Notifu::Actor
 
       require 'excon'
-      require 'erb'
 
       self.name = "twilio_call"
       self.desc = "POST requst to trigger phone-call"

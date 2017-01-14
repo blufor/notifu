@@ -3,19 +3,18 @@ module Notifu
     class Slack < Notifu::Actor
 
       require 'excon'
-      require 'erb'
 
       self.name = "slack"
       self.desc = "Notifies to Slack channel via Webhook"
       self.retry = 3
 
-      def post_data(rich = false)
+      def post_data(template, rich)
         return {
           username: "notifu",
           icon_emoji: ":loudspeaker:",
           attachments: [
             {
-              fallback: self.text(self.fallback_template),
+              fallback: self.apply_template(self.fallback_template),
               color: self.color,
               title: "#{self.issue.host} - #{self.issue.service}",
               title_link: "#{Notifu::CONFIG[:uchiwa_url]}/#/client/#{self.issue.datacenter}/#{self.issue.host}?check=#{self.issue.service}",
@@ -34,13 +33,26 @@ module Notifu
               ]
             }
           ]
-        } if rich
-        return {
-          username: "notifu",
-          icon_emoji: ":loudspeaker:",
-          text: self.text(self.template)
-        }
+        } if rich != nil
+
+        template ||= self.default_template
+        return { username: "notifu", icon_emoji: ":loudspeaker:", text: self.text }
       end
+
+      def text(c)
+        t = c.slack_template
+        t ||= self.default_template
+        self.apply_template t
+      end
+
+      def default_template
+        "#{self.status_icon} *<<%= uchiwa_url %>|<%= datacenter %>/<%= host %>>* <%= address %> #{self.service_icon} *<%= service %>* - <%= message %> _<%= duration %>_"
+      end
+
+      def fallback_template
+        "<%= status %> | <%= datacenter%>/<%= host %>/<%= service %> - <%= message %>"
+      end
+
 
       def color
         case self.issue.code.to_i
@@ -76,50 +88,25 @@ module Notifu
         @service_icon ||= ":gear:"
       end
 
-      # fallback simple message (templated, see below)
-      def text(tmpl)
-        data = OpenStruct.new({
-          notifu_id: self.issue.notifu_id,
-          datacenter: self.issue.datacenter,
-          host: self.issue.host,
-          address: self.issue.address,
-          service: self.issue.service,
-          message: self.issue.message,
-          status: self.issue.code.to_state,
-          duration: (Time.now.to_i - self.issue.time_created.to_i).duration,
-          uchiwa_url: "#{Notifu::CONFIG[:uchiwa_url]}/#/client/#{self.issue.datacenter}/#{self.issue.host}?check=#{self.issue.service}",
-          service_icon: self.service_icon,
-          status_icon: self.status_icon
-        })
-        ERB.new(tmpl).result(data.instance_eval {binding})
-      end
-
-      # template for fallback message
-      def fallback_template
-        "*<%= data[:status] %>* <%= data[:datacenter]%> <%= data[:host] %> <%= data[:service] %> - <%= data[:message] %> (<%= data[:duration] %>) <%= data[:uchiwa_url] %>"
-      end
-
-      # template for plain message
-      def template
-        "<%= data[:status_icon] %> *<<%= data[:uchiwa_url] %>|<%= data[:datacenter] %>/<%= data[:host] %>>* <%= data[:address] %> <%= data[:service_icon] %> *<%= data[:service] %>* - <%= data[:message] %> _<%= data[:duration] %>_"
-      end
-
       def act
         self.contacts.each do |contact|
-          begin
-            data = { channel: contact.slack_id }.merge(self.post_data(contact.slack_rich)) if contact.slack_rich
-            data ||= { channel: contact.slack_id }.merge(self.post_data)
-          rescue
-            data = self.post_data
+          if contact.slack_id != nil
+            data = self.post_data(contact.slack_template, contact.slack_rich).merge({ channel: contact.slack_id })
+          else
+            data = self.post_data(contact.slack_template, contact.slack_rich)
           end
-          puts data.to_yaml
-          Excon.post(Notifu::CONFIG[:actors][:slack][:url],
-            tcp_nodelay: true,
-            headers: { "ContentType" => "application/json" },
-            body: data.to_json,
-            expects: [ 200 ],
-            idempotent: true
-          )
+
+          begin
+            Excon.post(Notifu::CONFIG[:actors][:slack][:url],
+              tcp_nodelay: true,
+              headers: { "ContentType" => "application/json" },
+              body: data.to_json,
+              expects: [ 200 ],
+              idempotent: true
+            )
+          rescue Exception => e
+            log "error", "Failed to send message to Slack - #{e.class}: #{e.message}"
+          end
         end
       end
 
